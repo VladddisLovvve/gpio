@@ -1,44 +1,53 @@
 import RPi.GPIO as GPIO
 import time
+
 GPIO.setmode(GPIO.BCM)
 
-a = [10, 9, 11, 5, 6, 13, 19, 26]
+leds = [10, 9, 11, 5, 6, 13, 19, 26][::-1]
 
 
-GPIO.setup(17, GPIO.OUT)
-GPIO.setup(4, GPIO.IN)
-GPIO.output(17, 1)
+def decToBinList(decNumber):
+    binNumber = bin(decNumber)[2:]
+    binNumber = [int(x) for x in binNumber]
+    i = 8 - len(binNumber)
+    binNumber = [0]*i + binNumber
+    return binNumber
 
 
-def num2dac(decNumber):
-    b = [0, 0, 0, 0, 0, 0, 0, 0]
-    for i in a:
-            GPIO.setup(i, GPIO.OUT)
-            GPIO.output(i, 0)
-    for i in range(8):
-        if decNumber%2 == 0:
-            decNumber = decNumber//2
-        else:
-            b[i] = 1
-            decNumber = decNumber//2
-    for i in range(8):
-        if b[i] == 1:
-            GPIO.setup(a[i], GPIO.OUT)
-            GPIO.output(a[i], 1)
-    time.sleep(0.001)
+
+def simple_acp():
+    for i in range(256):
+        for j in range(8):
+            GPIO.output(leds[j], decToBinList(i)[j])
+        time.sleep(0.005)
+        if GPIO.input(4) == 0:
+            break
+    return i
+
+def num2dac(value, sleep_time = 10):
+    binNumber = bin(value)[2:]
+    binNumber = [int(x) for x in binNumber]
+    i = 8 - len(binNumber)
+    binNumber = [0]*i + binNumber
+    leds = [leds[x] for x in range(len(leds)) if binNumber[x] != 0]
+    GPIO.setup(d, GPIO.OUT)
+    GPIO.output(d, 1)
+    tm.sleep(sleep_time)
+    GPIO.output(d, 0)
+
 
 try:
-    l = 1
-    r = 255
-    while r-l>1:
-        m = (r+l)//2
-        num2dac(m)
-        if (r - l > 1) and (GPIO.input(4) == 0):
-            r = m
-        elif (r - l > 1) and (GPIO.input(4) == 1):
-            l = m
-        if r-l<=1:
+    left, right = 1, 255
+    while right-left > 1:
+        var = (right + left)//2
+        num2dac(var)
+        if (right - light > 1) and (GPIO.input(4) == 0):
+            right = var
+        elif (right - left > 1) and (GPIO.input(4) == 1):
+            left = var
+        if right - left <= 1:
             print('U =', str((l/255)*3.3)[0:4],'V')
             break
+
 finally:
     GPIO.cleanup()
